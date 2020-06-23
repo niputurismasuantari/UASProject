@@ -1,0 +1,50 @@
+*{
+    margin-top: 0;
+    padding-top: 0;
+    margin-right: 0;
+    padding-right: 0;
+}
+
+body{
+    background-color:#20232a;
+    padding:0;
+    margin:0;
+}
+.jumbotron{
+    width: 100%;
+    background-color: #282c34 !important;
+}
+.clear{
+    clear: both;
+}
+.pd-10{
+    padding: 10px;
+}
+input[type="text"],input[type="number"]{
+    border-radius: 0px !important;
+}
+
+input[type="text"]:focus{
+    color: #495057;
+    background-color: #fff;
+    border-color:none !important;
+    outline: none;
+    box-shadow: none !important;
+}
+.btn{
+    border-radius: 0px !important;
+}
+
+.text-inputs{
+font-size: 12px;   
+}
+.jumbotron{
+    /* padding:0px !important; */
+    padding: 2rem 1rem !important;
+}
+.table thead tr th{
+    font-size: 12px;
+}
+.disable_btn{
+    cursor:not-allowed;
+}

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Aplikasi Kasir</title>
+    <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="jumbotron jumbotron-fluid">
+        <div class="col-md-12 text-center">
+            <h2 style="color: #17a2b8;">KASIR</h2>
+        </div>
+    </div>
+
+    <div class="jumbotron jumbotron-fluid">
+        <div class="text-center">
+            <h3 style="color: #17a2b8;">Masukan Belanjaan</h3>
+        </div>
+        <div class="clear pd-10"></div>
+        <form id="form_tambah_barang">
+            <div class="form-group row">
+                <label for="kode_barang" class="col-sm-1 col-form-label text-inputs"
+                style="color: #fff8f8;">Kode Barang</label>
+                <div class="col-sm-5">
+                    <input type="text" name="kode_barang" class="form-control kode_barang" id="kode_barang"
+                        required="yes">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="nama_barang" class="col-sm-1 col-form-label text-inputs"
+                style="color: #fff8f8;">Nama Barang</label>
+                <div class="col-sm-5">
+                    <input type="text" name="nama_barang" class="form-control nama_barang" id="nama_barang" required>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="harga" class="col-sm-1 col-form-label text-inputs"
+                style="color: #fff8f8;">Harga</label>
+                <div class="col-sm-5">
+                    <input type="text" name="harga" class="form-control harga" id="harga" required>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="jumlah_barang" class="col-sm-1 col-form-label text-inputs"
+                style="color: #fff8f8;">Jumlah</label>
+                <div class="col-sm-5">
+                    <input type="number" name="jumlah_barang" class="form-control" minlength="0" id="jumlah_barang"
+                        required>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="total" class="col-sm-1 col-form-label"
+                style="color: #fff8f8;"><b>Total</b></label>
+                <div class="col-sm-5">
+                    <input type="hidden" id="total_harga_barang" name="total_harga_barang" >
+                    <h4 style="color: #fff8f8;">Rp. <span class="total_harga"></span></h4>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-md-12">
+                    <button type="submit" id="button" class="btn btn-info btn-block" style="align-content: center;">Tambah Belanjaan</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="text-center">
+        <h5 style="color: #fff8f8;">DAFTAR BELANJAAN</h5>
+    </div>
+    <div class="clear pd-10"></div>
+    <table class="table">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Kode Barang</th>
+                <th scope="col">Nama Barang</th>
+                <th scope="col">Harga</th>
+                <th scope="col">Jumlah</th>
+                <th scope="col">Total</th>
+            </tr>
+        </thead>
+        <tbody id="daftar_barang_belanjaan" style="color: black;background-color: #fff8f8;">
+        </tbody>
+    </table>
+    <form>
+        <div class="form-group row">
+            <label for="staticEmail" class="col-sm-1 col-form-label"
+            style="color: #fff8f8;">Bayar</label>
+            <div class="col-sm-6">
+                <input type="text" name="UangBayar" class="form-control" id="UangBayar" required="yes"
+                    placeholder="Rp.">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="staticEmail" class="col-sm-1 col-form-label text-inputs"
+            style="color: #fff8f8;">Kembalian</label>
+            <div class="col-sm-6">
+                <input type="text" name="UangKembalian" class="form-control" id="UangKembalian" readonly
+                    placeholder="Rp.">
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-md-12">
+                <button type="submit" id="tombol_bayar" class="btn btn-success btn-block" style="align-content: center;">Selesai</button>
+            </div>
+        </div>
+    </form>
+    <script>
+        window.$ = window.jQuery = require("jquery");
+    </script>
+    <!-- <script>require('bootstrap');</script> -->
+    <script>
+        const electron = require("electron");
+        const {
+            ipcRenderer
+        } = electron;
+
+        const form = document.getElementById("form_tambah_barang");
+        const penampungData = {};
+        var hitungToatlHargaBarang = 0;
+
+        form.addEventListener("submit", event => {
+            event.preventDefault();
+            for (let i = 0; i < form.elements.length; i++) {
+                if (form.elements[i].type !== "submit")
+                    penampungData[form.elements[i].name] = form.elements[i].value;
+            }
+            ipcRenderer.send("appointment:creates", penampungData);
+            // reset form
+            form.reset();
+            $('.total_harga').text('');
+        });
+        //membuat total diisi otomaits
+        $('#jumlah_barang').on('keyup', function () {
+            var jumlah_sekarang = $(this).val();
+            var total = jumlah_sekarang * $('.harga').val();
+            $('.total_harga').text(parseInt(total).toLocaleString());
+            $('#total_harga_barang').val(total);
+        });
+        //memasukan isi form ke dalam tabel "Daftar Belanjaan"
+        ipcRenderer.send("appointment:request:list");
+        ipcRenderer.on("appointment:response:list", (event, appoinments) => {
+            const listDiv = document.getElementById("daftar_barang_belanjaan");
+            appoinments.forEach(appoinment => {
+                const appointmentDive = document.createElement("tr");
+
+                const KodeBarang = document.createElement("th");
+                KodeBarang.innerHTML = `${appoinment.kode_barang}`;
+
+                const NamaBarang = document.createElement("td");
+                NamaBarang.innerHTML = `${appoinment.nama_barang}`;
+
+                const HargaBarang = document.createElement("td");
+                HargaBarang.innerHTML = `Rp ${parseInt(appoinment.harga).toLocaleString()}`;
+
+                const JumlahBarang = document.createElement("td");
+                JumlahBarang.innerHTML = `${appoinment.jumlah_barang}`;
+
+                const TotalHargaBarang = document.createElement("td");
+                TotalHargaBarang.innerHTML =
+                    `Rp.${parseInt(appoinment.total_harga_barang).toLocaleString()}`;
+
+                hitungToatlHargaBarang += Number(appoinment.total_harga_barang);
+                appointmentDive.appendChild(KodeBarang);
+                appointmentDive.appendChild(NamaBarang);
+                appointmentDive.appendChild(HargaBarang);
+                appointmentDive.appendChild(JumlahBarang);
+                appointmentDive.appendChild(TotalHargaBarang);
+                listDiv.append(appointmentDive);
+            })
+
+            //membuat total otomatis di tabel "Daftar Belanjaan"
+            const TrTotalHarga = document.createElement("tr");
+            TrTotalHarga.setAttribute('class', 'table');
+            const TotalTxt = document.createElement("th");
+            TotalTxt.setAttribute('colspan', '4');
+            TotalTxt.innerHTML = 'Total Semua';
+            const TotalSemuaHarga = document.createElement("td");
+            TotalSemuaHarga.innerHTML = "<h3>Rp." + parseInt(hitungToatlHargaBarang).toLocaleString() + "</h3>";
+
+
+            TrTotalHarga.appendChild(TotalTxt);
+            TrTotalHarga.appendChild(TotalSemuaHarga);
+            listDiv.append(TrTotalHarga);
+        });
+        //membuat tombol bayar bisa ditekan atau tidak
+        $('#tombol_bayar').attr('disabled', 'true').addClass('disable_btn');
+        $('#UangBayar').on('keyup', function () {
+            var jumlahuangbayar = $(this).val();
+            var kembalian = jumlahuangbayar - hitungToatlHargaBarang;
+            if (jumlahuangbayar < hitungToatlHargaBarang) {
+                $('#UangKembalian').val('Rp.0');
+                $('#tombol_bayar').attr('disabled', 'true').addClass('disable_btn');
+            } else {
+                $('#UangKembalian').val('Rp.' + parseInt(kembalian).toLocaleString());
+                $('#tombol_bayar').removeAttr('disabled').removeClass('disable_btn');
+            }
+
+        });
+        //membuat alert box
+        $('#tombol_bayar').click(function () {
+            alert("Transaksi Berhasi.... Terima Kasih");
+        });
+    </script>
+</body>
+
+</html>
